@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Smart Curl - Intelligent curl wrapper with typo detection and correction
+# Intelligent curl wrapper with typo detection and correction
 # Version: 1.0
 # Usage: scurl [curl options and arguments]
 
-SCRIPT_NAME="Smart Curl"
+SCRIPT_NAME="Scurl"
 VERSION="1.0"
 
 # Color codes for output
@@ -35,58 +35,47 @@ print_suggestion() {
     echo -e "${GREEN}💡 Suggestion:${NC} $1"
 }
 
-# Common curl option corrections
-declare -A OPTION_CORRECTIONS=(
-    ["-H"]="--header"
-    ["-h"]="--header"
-    ["--Head"]="--header"
-    ["--Header"]="--header"
-    ["-X"]="--request"
-    ["-x"]="--request"
-    ["--Request"]="--request"
-    ["-d"]="--data"
-    ["-D"]="--data"
-    ["--Data"]="--data"
-    ["-u"]="--user"
-    ["-U"]="--user"
-    ["--User"]="--user"
-    ["-o"]="--output"
-    ["-O"]="--output"
-    ["--Output"]="--output"
-    ["-L"]="--location"
-    ["-l"]="--location"
-    ["--Location"]="--location"
-    ["-s"]="--silent"
-    ["-S"]="--silent"
-    ["--Silent"]="--silent"
-    ["-v"]="--verbose"
-    ["-V"]="--verbose"
-    ["--Verbose"]="--verbose"
-    ["-k"]="--insecure"
-    ["-K"]="--insecure"
-    ["--Insecure"]="--insecure"
-    ["-i"]="--include"
-    ["-I"]="--include"
-    ["--Include"]="--include"
-)
+# Function to get option correction
+get_option_correction() {
+    case "$1" in
+        "-h") echo "--header" ;;
+        "--Head") echo "--header" ;;
+        "--Header") echo "--header" ;;
+        "-x") echo "--request" ;;
+        "--Request") echo "--request" ;;
+        "-D") echo "--data" ;;
+        "--Data") echo "--data" ;;
+        "-U") echo "--user" ;;
+        "--User") echo "--user" ;;
+        "-O") echo "--output" ;;
+        "--Output") echo "--output" ;;
+        "-l") echo "--location" ;;
+        "--Location") echo "--location" ;;
+        "-S") echo "--silent" ;;
+        "--Silent") echo "--silent" ;;
+        "-V") echo "--verbose" ;;
+        "--Verbose") echo "--verbose" ;;
+        "-K") echo "--insecure" ;;
+        "--Insecure") echo "--insecure" ;;
+        "-I") echo "--include" ;;
+        "--Include") echo "--include" ;;
+        *) echo "$1" ;;
+    esac
+}
 
-# Common HTTP methods
-declare -A HTTP_METHODS=(
-    ["get"]="GET"
-    ["Get"]="GET"
-    ["post"]="POST"
-    ["Post"]="POST"
-    ["put"]="PUT"
-    ["Put"]="PUT"
-    ["delete"]="DELETE"
-    ["Delete"]="DELETE"
-    ["patch"]="PATCH"
-    ["Patch"]="PATCH"
-    ["head"]="HEAD"
-    ["Head"]="HEAD"
-    ["options"]="OPTIONS"
-    ["Options"]="OPTIONS"
-)
+# Function to get HTTP method correction
+get_http_method_correction() {
+    case "$1" in
+        "get"|"Get") echo "GET" ;;
+        "post"|"Post") echo "POST" ;;
+        "put"|"Put") echo "PUT" ;;
+        "delete"|"Delete") echo "DELETE" ;;
+        "patch"|"Patch") echo "PATCH" ;;
+        "head"|"Head") echo "HEAD" ;;
+        "options"|"Options") echo "OPTIONS" ;;
+        *) echo "$1" ;;
+    esac
+}
 
 # Function to check for common typos in options
 check_option_typos() {
@@ -96,10 +85,10 @@ check_option_typos() {
     
     for arg in "${args[@]}"; do
         if [[ "$arg" =~ ^- ]]; then
-            # Check if it's a known correction
-            if [[ -n "${OPTION_CORRECTIONS[$arg]}" ]]; then
-                print_warning "Correcting '$arg' to '${OPTION_CORRECTIONS[$arg]}'"
-                corrected_args+=("${OPTION_CORRECTIONS[$arg]}")
+            local corrected=$(get_option_correction "$arg")
+            if [[ "$corrected" != "$arg" ]]; then
+                print_warning "Correcting '$arg' to '$corrected'"
+                corrected_args+=("$corrected")
                 corrections_made=true
             else
                 corrected_args+=("$arg")
@@ -131,9 +120,10 @@ check_http_method() {
             ((i++))
             if [ $i -lt ${#args[@]} ]; then
                 local method="${args[$i]}"
-                if [[ -n "${HTTP_METHODS[$method]}" ]]; then
-                    print_warning "Correcting HTTP method '$method' to '${HTTP_METHODS[$method]}'"
-                    corrected_args+=("${HTTP_METHODS[$method]}")
+                local corrected=$(get_http_method_correction "$method")
+                if [[ "$corrected" != "$method" ]]; then
+                    print_warning "Correcting HTTP method '$method' to '$corrected'"
+                    corrected_args+=("$corrected")
                     corrections_made=true
                 else
                     corrected_args+=("$method")
